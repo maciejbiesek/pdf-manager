@@ -32,7 +32,7 @@ def documents_list():
     else:
         documents = Document.query.order_by(Document.id).all()
         documents = [elem.as_dict() for elem in documents]
-        return jsonify({JsonField.Document: documents}), status.HTTP_200_OK
+        return jsonify({JsonField.Documents: documents}), status.HTTP_200_OK
 
 
 @app.route("/documents/<document_id>", methods=['DELETE'])
@@ -42,7 +42,7 @@ def delete_document(document_id):
         return jsonify({JsonField.Message: DOCUMENT_NO_EXIST_MSG}), status.HTTP_404_NOT_FOUND
     db.session.delete(document)
     db.session.commit()
-    return jsonify({}), status.HTTP_200_OK
+    return jsonify({JsonField.Document: document.as_dict()}), status.HTTP_200_OK
 
 
 @app.route("/documents/<document_id>/pages/<page_number>", methods=['GET'])

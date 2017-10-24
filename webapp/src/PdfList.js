@@ -42,6 +42,7 @@ class PdfList extends Component {
                                 <th>Id</th>
                                 <th>Filename</th>
                                 <th>Number of pages</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -50,6 +51,9 @@ class PdfList extends Component {
                                     <td>{item.id}</td>
                                     <td><a href={"details/" + item.id + "/1"}>{item.filename}</a></td>
                                     <td>{item.pages}</td>
+                                    <td><button id={item.id}
+                                                className='btn btn-sm btn-primary'
+                                                onClick={this.deleteDocument}>Delete</button></td>
                                 </tr>
                             )}
                         </tbody>
@@ -61,7 +65,7 @@ class PdfList extends Component {
 
     onDrop = (acceptedFiles, rejectedFiles) => {
         if (rejectedFiles.length === 0) {
-            let what = "documents"
+            let what = "documents";
             const req = request.post(`${Constants.BASE_URL}${what}`);
             acceptedFiles.forEach(file => {
                 req.attach("file", file);
@@ -79,6 +83,23 @@ class PdfList extends Component {
         } else {
             alert("You can upload only PDF files!")
         }
+    }
+
+    deleteDocument = (event) => {
+        let documentId = event.target.id;
+        let what = "documents/";
+        request
+            .delete(`${Constants.BASE_URL}${what}${documentId}`)
+            .end((err, res) => {
+                if (err || !res.ok) {
+                    console.log("Error", err.message);
+                } else {
+                    alert("Succesfully deleted");
+                    let documents = this.state.documents;
+                    documents = documents.filter(item => item.id !== res.body.document.id);
+                    this.setState({documents: documents});
+                }
+            });
     }
 }
 

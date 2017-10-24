@@ -5,6 +5,7 @@ ADDED_SUCCESS = "File %s added to the database"
 
 
 class JsonField:
+    Documents = 'documents'
     Document = 'document'
     Details = 'details'
     Content = 'content'
