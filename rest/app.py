@@ -5,7 +5,7 @@ from io import BytesIO
 
 from engine.pdf_parser import PdfParser
 from rest.models import db, Document, Content
-from rest.constants import DATABASE_URL, ADDED_SUCCESS, NO_EXIST_MSG, JsonField
+from rest.constants import DATABASE_URL, ADDED_SUCCESS, PAGE_NO_EXIST_MSG, DOCUMENT_NO_EXIST_MSG, JsonField
 
 app = Flask(__name__)
 CORS(app)
@@ -23,24 +23,34 @@ def documents_list():
         pages_content = []
         for page_number, content in file_content.items():
             pages_content.append(Content(page_number=page_number, content=content))
-        doc = Document(filename=file.filename, pages=pages, contents=pages_content)
-        db.session.add(doc)
+        document = Document(filename=file.filename, pages=pages, contents=pages_content)
+        db.session.add(document)
         db.session.add_all(pages_content)
         db.session.commit()
         print(ADDED_SUCCESS % file.filename)
-        return jsonify({JsonField.Document: doc.as_dict()}), status.HTTP_200_OK
+        return jsonify({JsonField.Document: document.as_dict()}), status.HTTP_200_OK
     else:
         documents = Document.query.order_by(Document.id).all()
         documents = [elem.as_dict() for elem in documents]
         return jsonify({JsonField.Document: documents}), status.HTTP_200_OK
 
 
-@app.route("/documents/<document_id>/<page_number>", methods=['GET'])
+@app.route("/documents/<document_id>", methods=['DELETE'])
+def delete_document(document_id):
+    document = Document.query.filter_by(id=document_id).first()
+    if document is None:
+        return jsonify({JsonField.Message: DOCUMENT_NO_EXIST_MSG}), status.HTTP_404_NOT_FOUND
+    db.session.delete(document)
+    db.session.commit()
+    return jsonify({}), status.HTTP_200_OK
+
+
+@app.route("/documents/<document_id>/pages/<page_number>", methods=['GET'])
 def get_page(document_id, page_number):
     page_content = Content.query.filter_by(document_id=document_id, page_number=page_number).first()
     if page_content is None:
-        return jsonify({JsonField.Details: {JsonField.Content: NO_EXIST_MSG}}), status.HTTP_404_NOT_FOUND
+        return jsonify({JsonField.Details: {JsonField.Message: PAGE_NO_EXIST_MSG}}), status.HTTP_404_NOT_FOUND
     doc = Document.query.filter_by(id=document_id).first()
     details = page_content.as_dict()
     details['pages'] = doc.pages
-    return jsonify({JsonField.Document: details}), status.HTTP_200_OK
+    return jsonify({JsonField.Details: details}), status.HTTP_200_OK

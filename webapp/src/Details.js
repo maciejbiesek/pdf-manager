@@ -14,7 +14,7 @@ class Details extends Component {
     }
 
     componentDidMount() {
-        let what = ["documents", this.state.documentId, this.state.page].join("/")
+        let what = ["documents", this.state.documentId, "pages", this.state.page].join("/")
         const req = request.get(`${Constants.BASE_URL}${what}`);
         req.end((err, res) => {
             if (err || !res.ok) {

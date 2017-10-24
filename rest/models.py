@@ -7,7 +7,7 @@ class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.Text, nullable=False)
     pages = db.Column(db.Integer, nullable=False)
-    contents = db.relationship('Content', backref='document', lazy=True)
+    contents = db.relationship('Content', backref='document', cascade="all, delete-orphan", lazy=True)
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
